@@ -1,0 +1,28 @@
+INFO: [ 4204] 22:08:28.587 Serval DNA version: START-35115-gf8bdd32629+build@servalproject.org-20191002114920   
+FATAL:[ 4204] 22:08:28.587 overlay_address.c:127:free_node()  Can't free a subscriber that is being used by rhiz
+FATAL:[ 4204] 22:08:28.603 servald_main.c:69:crash_handler()  Caught signal SIGABRT (6) Aborted                 
+FATAL:[ 4204] 22:08:28.604 performance_timing.c:228:dump_stack()  commandline_main                              
+FATAL:[ 4204] 22:08:28.608 servald_main.c:71:crash_handler()  GDB BACKTRACE                                     
+FATAL:[ 4204] 22:08:28.611 GDB execlp("gdb"): No such file or directory                                         
+FATAL:[ 4204] 22:08:28.613 gdb exited normally with status 253                                                  
+INFO: [ 5391] 22:18:48.808 Local date/time: 2019-10-14 22:18:48 +1030                                           
+INFO: [ 5391] 22:18:48.808 Current configuration:                                                               
+INFO: [ 5391] 22:18:48.808    api.restful.users.lbard.password=lbard                                            
+INFO: [ 5391] 22:18:48.808    interfaces.1.match=eth0                                                           
+INFO: [ 5391] 22:18:48.808    interfaces.1.socket_type=dgram                                                    
+INFO: [ 5391] 22:18:48.808    interfaces.1.type=ethernet                                                        
+INFO: [ 5391] 22:18:48.808    interfaces.2.match=eth1                                                           
+INFO: [ 5391] 22:18:48.808    interfaces.2.socket_type=dgram                                                    
+INFO: [ 5391] 22:18:48.808    interfaces.2.type=ethernet                                                        
+INFO: [ 5391] 22:18:48.808    interfaces.3.match=wlan0                                                          
+INFO: [ 5391] 22:18:48.808    interfaces.3.socket_type=dgram                                                    
+INFO: [ 5391] 22:18:48.808    interfaces.4.match=wlan1                                                          
+INFO: [ 5391] 22:18:48.808    interfaces.4.socket_type=dgram                                                    
+INFO: [ 5391] 22:18:48.808    interfaces.5.match=adhoc0                                                         
+INFO: [ 5391] 22:18:48.808    interfaces.5.socket_type=dgram                                                    
+INFO: [ 5391] 22:18:48.808    log.console.level=debug                                                           
+INFO: [ 5391] 22:18:48.808    log.console.show_time=true                                                        
+INFO: [ 5391] 22:18:48.808    log.file.directory_path=/serval-var/log                                           
+INFO: [ 5391] 22:18:48.808    log.file.level=fatal                                                              
+INFO: [ 5391] 22:18:48.808    rhizome.datastore_path=/serval-var/rhizome                                        
+INFO: [ 5391] 22:18:48.808    rhizome.idle_timeout=30k 

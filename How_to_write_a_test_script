@@ -1,0 +1,17 @@
+All test script start with :
+
+#!testServalMeshExtenderScript
+
+To launch the test script all parameter need to be entered in this specific order :
+
+1) Active nodes during the test :
+#activesNodes
+  first_active_node
+  second_active_node
+#
+
+2) Start and END node
+
+3)FILE BUNDLE
+
+4) TESTED PROTOCOL

@@ -1,0 +1,9 @@
+#!testServalMeshExtenderScript
+
+ActivesNodes Me11 Me5 Me4 #
+Protocol LBARD #
+Start Me4 #
+End Me5 #
+ActivesMeshObservers #
+RhizomeFile #
+Action SendMeshms #
