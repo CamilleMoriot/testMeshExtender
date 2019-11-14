@@ -22,66 +22,37 @@ fi
 
 #Stoping all node and process of all ME
 
-StopSCRIPT="servald rhizome clean ; servald stop ; servald status;"
 USERNAMEMe="root"
 PASSWORDMe="root"
 USERNAMEMo="root"
 PASSWORDMo="root"
 
 
-:<< 'end_comment'
+
 while read -u10 addrline; do
 	#echo $addrline
 	stringarray=($addrline)
 	meshObs="$(echo ${stringarray[0]} | head -c 2)"
-	if [ "$meshObs" != "MO" ];  then	
-		sshpass -p ${PASSWORDMe} ssh ${USERNAMEMe}@${stringarray[2]} << end
-			${StopSCRIPT} 
-end
-     #else
-     #	echo Stoping MO....
-       	#sshpass -p ${PASSWORDMo} ssh -l ${USERNAMEMo} ${stringarray[2]} << end
+	if [ "$meshObs" != "MO" ];  then
+		echo Stoping ${stringarray[0]}
+		sshpass -p root ssh -o "StrictHostKeyChecking no" root@${stringarray[2]} "ps | grep -E \"(servald)|(lbard)\" | cut -d ' ' -f 1 | xargs kill"
+    sshpass -p root ssh -o "StrictHostKeyChecking no" root@${stringarray[2]} "ps | grep -E \"(servald)|(lbard)\" | cut -d ' ' -f 2 | xargs kill"
+    echo "Nuking Rhizome database"
+    sshpass -p root ssh -o "StrictHostKeyChecking no" root@${stringarray[2]} "rm -rvf /serval-var/rhizome/"
+     else
+     		echo Stoping ${stringarray[0]}
+       	sshpass -p ${PASSWORDMo} ssh -o "StrictHostKeyChecking no" -l ${USERNAMEMo} ${stringarray[1]} << end
        			kill $(ps | grep '[c]apture' | awk '{print $1}')
-end       	
+end
      fi
 done 10< "$AddressFile"
-end_comment
+
 
 #READING TEST FILE
 
 #initialiaze associative array
 declare -A SCRIPTFORNODE
 declare -A SCRIPTFORMO
-
-:<< 'end_comment'
-#Get Actives Mesh Observer
-activesMOLine="$(cat ${TestFile} | grep "ActivesMeshObservers")"
-#echo $activesMOLine
-lineMO=($activesMOLine)
-for index in "${lineMO[@]:0}"; do
-  #echo $index
-  if [ $index != '#' ]; then
-    SCRIPTFORMO+=( ["$index"]="capture 192.168.1.134" )
-  fi
-done
-
-#start MO server on computer 
-cd ./
-
-
-#Print script for each MO and ssh connection
-for KEY in "${!SCRIPTFORMO[@]}"; do
-  # Print the KEY value
-  echo "******MOid: $KEY"
-  # Print the VALUE attached to that KEY
-  echo "Script: ${SCRIPTFORMO[$KEY]}"
-
-  echo "SSH Connecting ..."
-  getlinefromfile="$(cat ${AddressFile} | grep ${KEY})"
-  lineinfo=($getlinefromfile)
-  #sshpass -p ${PASSWORDMo} ssh ${USERNAMEMo}@${lineinfo[1]} "${SCRIPTFORMO[$KEY]}"
-done
-end_comment
 
 
 #get start point of test
@@ -96,7 +67,7 @@ lineinfo=($endline)
 END=${lineinfo[1]}
 echo "Charging ending point .... " $END
 
-:<< 'end_comment'
+
 #upload Rhizome Bundle File
 RhizomeFileName="$(cat ${TestFile} | grep "RhizomeFile")"
 lineinfo=($RhizomeFileName)
@@ -107,15 +78,13 @@ for index in "${lineinfo[@]:1}"; do
     #get address
     getlinefromfile="$(cat ${AddressFile} | grep ${CurrentNode})"
     lineinfo=($getlinefromfile)
-    sshpass -p ${PASSWORDMe} scp -r rhizomeFile/${index} ${USERNAMEMe}@${lineinfo[2]}:/serval-var/rhizome/
+    sshpass -p ${PASSWORDMe} scp -r rhizomeFile/${index} ${USERNAMEMe}@${lineinfo[2]}:/serval-var/
     sshpass -p ${PASSWORDMe} ssh ${USERNAMEMe}@${lineinfo[2]} << fileNameChanged
-    	cd /serval-var/rhizome/
-    	rm rhizome.db
-    	mv ${index} rhizome.db
+    	tar xvf /serval-var/${index}
 fileNameChanged
   fi
 done
-end_comment
+
 
 # get actives nodes
 activesNodesLine="$(cat ${TestFile} | grep "ActivesNodes")"
@@ -124,9 +93,10 @@ lineinfo=($activesNodesLine)
 for index in "${lineinfo[@]:1}"; do
   #echo $index
   if [ $index != '#' ]; then
-    SCRIPTFORNODE+=( ["$index"]="servald start ; " )
+    SCRIPTFORNODE+=( ["$index"]=" servald start ; " )
   fi
 done
+
 
 #get protocol tested
 protocolline="$(cat ${TestFile} | grep "Protocol")"
@@ -137,21 +107,26 @@ if [ ${#lineinfo} -le 16 ]; then
   if [ $PROTOCOL == 'LBARD' ]; then
     #stop adhoc WIFI
     for KEY in "${!SCRIPTFORNODE[@]}" ; do
-      SCRIPTFORNODE[$KEY]+=" ifconfig adhoc0 down ; " #ajouter LBARD UP
+			sidline="$(cat ${AddressFile} | grep $KEY)"
+			lineinfo=($sidline)
+			SID=${lineinfo[1]}
+      SCRIPTFORNODE[$KEY]+=" ifconfig adhoc0 down ; ../etc/serval/runlbard & " #ajouter LBARD UP
     done
   fi
   if [ $PROTOCOL == 'WIFI' ]; then
     for KEY in "${!SCRIPTFORNODE[@]}"; do
-      SCRIPTFORNODE[$KEY]+=" ifconfig adhoc0 up ; " #ajouter LBARD DOWN
+      SCRIPTFORNODE[$KEY]+=" ifconfig adhoc0 up ; "
     done
   fi
 else
   echo "Charging Multiple Protocols..." ${lineinfo[@]:1:${#lineinfo[@]}-2}
   for KEY in "${!SCRIPTFORNODE[@]}"; do
-    SCRIPTFORNODE[$KEY]+=" ifconfig adhoc0 up ; " #ajouter LBARD UP
+		sidline="$(cat ${AddressFile} | grep $KEY)"
+		lineinfo=($sidline)
+		SID=${lineinfo[1]}
+    SCRIPTFORNODE[$KEY]+=" ifconfig adhoc0 up ; ../etc/serval/runlbard & " #ajouter LBARD UP
   done
 fi
-
 
 #Get action
 actionline="$(cat ${TestFile} | grep "Action")"
@@ -161,7 +136,7 @@ if [ $ACTION == "SendMeshms" ]; then
 	#get sender and receiver sid
 	getlinefromfilestart="$(cat ${AddressFile} | grep ${START})"
 	lineinfostart=($getlinefromfilestart)
-	getlinefromfileend="$(cat ${AddressFile} | grep ${END})"	
+	getlinefromfileend="$(cat ${AddressFile} | grep ${END})"
 	lineinfoend=($getlinefromfileend)
 	if [ $PROTOCOL == 'WIFI' ]; then
 		SCRIPTFORNODE+=( ["${START}"]="servald meshms send message ${lineinfostart[1]}  ${lineinfoend[1]} hiIamworking! ; servald meshms list messages ${lineinfostart[1]}  ${lineinfoend[1]} ;" )
@@ -170,6 +145,42 @@ if [ $ACTION == "SendMeshms" ]; then
 		SCRIPTFORNODE+=( ["${START}"]="lbard meshms send ${lineinfostart[1]}  ${lineinfoend[1]} hi!!IamLBARD! ; lbard meshms list messages ${lineinfostart[1]} ${lineinfoend[1]} ;" )
 	fi
 fi
+
+#Get Actives Mesh Observer
+activesMOLine="$(cat ${TestFile} | grep "ActivesMeshObservers")"
+echo $activesMOLine
+lineMO=($activesMOLine)
+for index in "${lineMO[@]:1}"; do
+  echo $index
+  if [ $index != '#' ]; then
+		if [ $PROTOCOL == 'WIFI' ]; then
+    	SCRIPTFORMO+=( ["$index"]="capture --nouhf 192.168.1.41 & " )
+		fi
+		if [ $PROTOCOL == 'LBARD' ]; then
+    	SCRIPTFORMO+=( ["$index"]="capture --nowifi 192.168.1.41 & " )
+		fi
+  fi
+done
+
+#start MO server on computer
+	cd /home/metest/serval-mesh-observer-packet-capture/server/
+ 	./svrCap &
+	cd /home/metest/testMeshExtender
+
+#Print script for each MO and ssh connection
+for KEY in "${!SCRIPTFORMO[@]}"; do
+  # Print the KEY value
+  echo "******MOid: $KEY"
+  # Print the VALUE attached to that KEY
+  echo "Script: ${SCRIPTFORMO[$KEY]}"
+  getlinefromfile="$(cat ${AddressFile} | grep ${KEY})"
+	echo $getlinefromfile
+  lineinfo=($getlinefromfile)
+  sshpass -p ${PASSWORDMo} ssh  ${USERNAMEMo}@${lineinfo[1]} "${SCRIPTFORMO[$KEY]}"
+done
+
+
+
 
 echo nodes ${!SCRIPTFORNODE[@]}
 for KEY in "${!SCRIPTFORNODE[@]}"; do
@@ -186,14 +197,9 @@ for KEY in "${!SCRIPTFORNODE[@]}"; do
 fin
 done
 
-sleep 1m
+sleep 2m
 getlinefromfile="$(cat ${AddressFile} | grep ${START})"
-	echo lbard meshms list messages ${lineinfostart[1]} ${lineinfoend[1]}
 	sshpass -p ${PASSWORDMe} ssh ${USERNAMEMe}@${lineinfo[2]} << fin
-		lbard meshms list messages ${lineinfostart[1]} ${lineinfoend[1]}
+		servald meshms list messages ${lineinfostart[1]} ${lineinfoend[1]}
 fin
-
-
-# left to do :  wait until test is finished and get the MO graph from server + check again if message was received 
-
-
+ ps | grep svr | cut -d ' ' -f 1 | xargs kill -SIGINT

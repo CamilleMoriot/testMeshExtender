@@ -1,7 +1,7 @@
 #!testServalMeshExtenderScript
 
-ActivesNodes Me10 Me9 #
-Protocol LBARD #
+ActivesNodes Me9 Me10 #
+Protocol WIFI #
 Start Me9 #
 End Me10 #
 ActivesMeshObservers Mo10 #

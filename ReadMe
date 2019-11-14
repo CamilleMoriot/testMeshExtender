@@ -1,0 +1,23 @@
+2 tests script : 
+
+
+testscript.sh :
+
+	to launch : ./testscript.sh [testfile] [addressfile]
+
+		exemple of tests files are : testWifi1hop, testlbardonehop, testlbardmultihop
+
+		This script can be ameliorate, as used for the firsts tests and not really after we discovered the lbard problems
+		Wifi capture can be not so good as there is still problems with the mesh observer
+
+spreadTest.sh :
+
+	to launch : ./spreadTest.sh
+
+		No need for argument but in file it's needed to specify a .tar file with a rhizome database
+
+		This tests loop a certain amount of time (written in the tests script), and tests is database is correctly spread on all mesh extenders after a certain time. To do so, it will sent txt file in repository rhizometest at 192.168.1.41. (computer in lab)
+
+
+
+

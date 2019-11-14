@@ -1,0 +1,9 @@
+#!testServalMeshExtenderScript
+
+ActivesNodes Me4 Me10 Me9 Me8 Me7 #
+Protocol WIFI #
+Start Me4 #
+End Me7 #
+ActivesMeshObservers Mo4 #
+RhizomeFile #
+Action SendMeshms #
